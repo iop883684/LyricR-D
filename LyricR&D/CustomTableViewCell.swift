@@ -48,6 +48,9 @@ class CustomTableViewCell: UITableViewCell {
     
     func setContentCell(line:LyricLine, graphLine:[Graph]) {
         
+//        print(line.times)
+//        print(line.words)
+//        print(graphLine)
         graphs = graphLine
         lbLyric.text = line.words.joined()
         let str:NSString = line.words.joined() as NSString
@@ -66,6 +69,9 @@ class CustomTableViewCell: UITableViewCell {
 
         var wordIndex = 0
         var currentWord = ""
+        
+        poinList.removeAll()
+        
         for word in line.words{
             
 //            let range:NSRange  = str.range(of: word)
@@ -90,60 +96,58 @@ class CustomTableViewCell: UITableViewCell {
             wordIndex += 1
         }
         
-
-//        backgroundView?.setNeedsDisplay()
-        for view in self.subviews{
-            if view .isKind(of: UIBezierPath.self){
-                view.removeFromSuperview()
+        self.layer.sublayers?.forEach {
+            if $0.isKind(of: CAShapeLayer.self){
+                $0.removeFromSuperlayer()
             }
+            
         }
-
-//        self.setNeedsDisplay()
+        
+        drawTheLine()
+        
+        
 
     }
-
-
-    override func draw(_ rect: CGRect) {
-        
-        print("draw rect")
-        
-        super.draw(rect)
-        //// Bezier Drawing
+    
+    func drawTheLine(){
         
         var index = 0
         
-        
         for aPoint in poinList {
-
+            
+            let shapeLayer = CAShapeLayer()
+            //        shapeLayer.name = "ShapeLayer"
+            shapeLayer.strokeColor = UIColor.red.cgColor
+            
             let bezierPath = UIBezierPath()
-            UIColor.red.setStroke()
+//            UIColor.red.setStroke()
             
             let curPoint = graphs[index+1]
             
             if curPoint == Graph.normalPoint {
-            
+                
                 bezierPath.move(to: aPoint.start)
                 bezierPath.addLine(to: aPoint.end)
                 
             } else if curPoint == Graph.startPoint {
-
+                
                 var startP = aPoint.start
                 startP.x += 10
                 startP.y -= 10
                 
                 bezierPath.move(to: startP)
-
+                
                 var c1 = aPoint.start
                 c1.x += 10
                 c1.y -= 5
-
+                
                 var c2 = aPoint.start
                 c2.x += 15
-
+                
                 bezierPath.addCurve(to: aPoint.end,
                                     controlPoint1: c1,
                                     controlPoint2: c2)
-            
+                
             } else if curPoint == Graph.endPoint {
                 
                 
@@ -163,11 +167,12 @@ class CustomTableViewCell: UITableViewCell {
                 bezierPath.addCurve(to: endP,
                                     controlPoint1: c1,
                                     controlPoint2: c2)
-
-
+                
+                
             } else if curPoint == .longPoint {
-
-                UIColor.green.setStroke()
+                
+                shapeLayer.strokeColor = UIColor.green.cgColor
+                
                 var startP = aPoint.start
                 startP.y -= 10
                 bezierPath.move(to: startP)
@@ -178,22 +183,50 @@ class CustomTableViewCell: UITableViewCell {
                 bezierPath.addCurve(to: endP,
                                     controlPoint1: aPoint.start,
                                     controlPoint2: aPoint.end)
-
+                
             } else {
                 
                 bezierPath.move(to: aPoint.start)
                 bezierPath.addLine(to: aPoint.end)
                 
             }
-
+            
             index += 1
             
             
             bezierPath.lineWidth = 1
-            bezierPath.stroke()
+//            bezierPath.stroke()
+            
+            
+            shapeLayer.path = bezierPath.cgPath
+            
+            //change the fill color
+            shapeLayer.fillColor = UIColor.clear.cgColor
+            //you can change the line width
+            shapeLayer.lineWidth = 1
+            
+//            shapeLayer.strokeColor = UIColor(red: 96/255, green: 96/255, blue: 96/255, alpha: 1).cgColor
+            
+            
+            self.layer.addSublayer(shapeLayer)
             
             
         }
+        
+        
+
+        
+    }
+
+
+    override func draw(_ rect: CGRect) {
+        
+        print("draw rect")
+        
+        super.draw(rect)
+        //// Bezier Drawing
+        
+        
         
 
 
